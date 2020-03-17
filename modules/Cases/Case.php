@@ -1,10 +1,11 @@
 <?php
 /**
+ *
  * SugarCRM Community Edition is a customer relationship management program developed by
  * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  *
  * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2016 SalesAgility Ltd.
+ * Copyright (C) 2011 - 2018 SalesAgility Ltd.
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -15,7 +16,7 @@
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
  * details.
  *
  * You should have received a copy of the GNU Affero General Public License along with
@@ -33,16 +34,9 @@
  * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
  * these Appropriate Legal Notices must retain the display of the "Powered by
  * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for  technical reasons, the Appropriate Legal Notices must
- * display the words  "Powered by SugarCRM" and "Supercharged by SuiteCRM".
+ * reasonably feasible for technical reasons, the Appropriate Legal Notices must
+ * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
-
-/*********************************************************************************
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
@@ -164,7 +158,7 @@ class aCase extends Basic
      */
     public function get_summary_text()
     {
-        return "$this->name";
+        return (string)$this->name;
     }
 
     /**
@@ -253,6 +247,12 @@ class aCase extends Basic
         $query_array=$this->contacts->getQuery();
 
         //update the select clause in the returned query.
+
+        if (!is_array($query_array)) {
+            LoggerManager::getLogger()->fatal('Building database selection for contacts but the query information format is not an array.');
+            return false;
+        }
+
         $query_array['select'] =
             'SELECT contacts.id, contacts.first_name, contacts.last_name, contacts.title, contacts.email1, contacts.phone_work, contacts_cases.contact_role as case_role, contacts_cases.id as case_rel_id ';
 
@@ -345,7 +345,8 @@ class aCase extends Basic
     public function set_notification_body($xtpl, $case)
     {
         global $app_list_strings;
-
+        
+        $xtpl->assign('CASE_NUMBER', $case->case_number);
         $xtpl->assign('CASE_SUBJECT', $case->name);
         $xtpl->assign(
             'CASE_PRIORITY',
@@ -406,7 +407,7 @@ class aCase extends Basic
         // Get the id and the name.
         $row = $this->db->fetchByAssoc($result);
 
-        if ($row !== null) {
+        if ($row !== null && $row !== false) {
             $ret_array['account_name'] = stripslashes($row['name']);
             $ret_array['account_id'] = $row['id'];
         } else {
